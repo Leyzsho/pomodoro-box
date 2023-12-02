@@ -1,0 +1,10 @@
+{
+    "cSpell.words": [
+        "инстаграма"
+    ],
+    "files.autoSave": "afterDelay",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "eslint.validate": ["javascript"]
+}
