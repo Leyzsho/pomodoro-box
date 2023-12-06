@@ -3,9 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>pomodoro_box - техника помодора</title>
 </head>
 <body>
-
+  <header class="header">
+    <div class="header__container">
+      <div class="header__logo">
+        <svg class="header__logo-svg">
+          <use xlink:href="#logo"></use>
+        </svg>
+        <h1 class="header__logo-title">pomodoro_box</h1>
+      </div>
+      <a href="./statistics.html" class="header__link">Статистика</a>
+      <div class="header__change-theme-wrapper">
+        <svg class="header__change-theme-svg"><use xlink:href="#lamp-light-theme"></use></svg>
+        <button class="header__change-theme-btn"><span></span></button>
+      </div>
+    </div>
+  </header>
+  <main class="main">
+    <section class="app">
+      <div class="app__container">
+        <div class="app__instruction-wrapper">
+          <h2 class="app__instruction-title">Ура! Теперь можно начать работать:</h2>
+          <ul class="app__instruction-list">
+            <li class="app__instruction-item">Выберите категорию и напишите название текущей задачи</li>
+            <li class="app__instruction-item">Запустите таймер («помидор»)</li>
+            <li class="app__instruction-item">Работайте пока «помидор» не прозвонит</li>
+            <li class="app__instruction-item">Сделайте короткий перерыв (3-5 минут)</li>
+            <li class="app__instruction-item">Продолжайте работать «помидор» за «помидором», пока задача не будут выполнена. Каждые 4 «помидора» делайте длинный перерыв (15-30 минут).</li>
+          </ul>
+        </div>
+        <div class="app__task-list-wrapper">
+          <input type="text" class="app__task-list-input" placeholder="Название задачи">
+          <button class="app__task-list-btn">Добавить</button>
+        </div>
+        <div class="app__task">
+          <div class="app__task-header">
+            <h2 class="app__task-title"></h2>
+            <span class="app__task-tomato-count"></span>
+          </div>
+          <div class="app__task-time-wrapper">
+            <span class="app__task-time"></span>
+            <button class="app__task-time-btn"></button>
+          </div>
+          <span class="app__task-info"></span>
+          <button class="app__task-first-btn">Старт</button>
+          <button class="app__task-second-button">Стоп</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <p class="some-text">fsdfsdf</p>
 </body>
 </html>
