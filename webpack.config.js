@@ -11,8 +11,8 @@ const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 
 module.exports = (env) => ({
   entry: {
-    index: ['./src/ts/bundles/index.ts', './src/sass/main.scss'],
-    statistics: ['./src/ts/bundles/statistics.ts', './src/sass/main.scss'],
+    index: ['./src/ts/bundles/index.ts', './src/sass/bundle.scss'],
+    statistic: ['./src/ts/bundles/statistic.ts', './src/sass/bundle.scss'],
   },
   output: {
     filename: '[name].[contenthash].js',
@@ -91,10 +91,10 @@ module.exports = (env) => ({
       chunks: ['index'],
     }),
     new HtmlWebpackPlugin({
-      filename: 'statistics.html',
-      template: './src/statistics.html',
+      filename: 'statistic.html',
+      template: './src/statistic.html',
       scriptLoading: 'module',
-      chunks: ['statistics'],
+      chunks: ['statistic'],
     }),
     new MiniCssExtractPlugin({
       filename: 'bundle.[contenthash].css',

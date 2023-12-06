@@ -5,20 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>pomodoro_box - техника помодора</title>
 </head>
-<body>
+<body data-theme="light">
   <header class="header">
     <div class="header__container">
-      <div class="header__logo">
+      <a href="./index.html" class="header__logo">
         <svg class="header__logo-svg">
           <use xlink:href="#logo"></use>
         </svg>
         <h1 class="header__logo-title">pomodoro_box</h1>
+      </a>
+      <div class="header__statistic-link-wrapper">
+        <svg class="header__statistic-link-svg">
+          <use xlink:href="#statistic-link"></use>
+        </svg>
+        <a href="./statistic.html" class="header__statistic-link">Статистика</a>
       </div>
-      <a href="./statistics.html" class="header__link">Статистика</a>
-      <div class="header__change-theme-wrapper">
-        <svg class="header__change-theme-svg"><use xlink:href="#lamp-light-theme"></use></svg>
-        <button class="header__change-theme-btn"><span></span></button>
-      </div>
+      <button class="header__change-theme-btn"></button>
     </div>
   </header>
   <main class="main">
@@ -36,24 +38,24 @@
         </div>
         <div class="app__task-list-wrapper">
           <input type="text" class="app__task-list-input" placeholder="Название задачи">
-          <button class="app__task-list-btn">Добавить</button>
+          <button class="app__task-list-add-task" disabled>Добавить</button>
+          <ul class="app__task-list"></ul>
         </div>
         <div class="app__task">
           <div class="app__task-header">
-            <h2 class="app__task-title"></h2>
-            <span class="app__task-tomato-count"></span>
+            <h2 class="app__task-title">Добавьте хотя бы одну задачу</h2>
+            <span class="app__task-current-tomato"></span>
           </div>
           <div class="app__task-time-wrapper">
-            <span class="app__task-time"></span>
-            <button class="app__task-time-btn"></button>
+            <span class="app__task-time">25 00</span>
+            <button class="app__task-add-time" disabled></button>
           </div>
-          <span class="app__task-info"></span>
-          <button class="app__task-first-btn">Старт</button>
-          <button class="app__task-second-button">Стоп</button>
+          <span class="app__task-info"><span></span><span class="app__task-info-name"></span></span>
+          <button class="app__task-first-btn" disabled>Старт</button>
+          <button class="app__task-second-btn" disabled>Стоп</button>
         </div>
       </div>
     </section>
   </main>
-  <p class="some-text">fsdfsdf</p>
 </body>
 </html>

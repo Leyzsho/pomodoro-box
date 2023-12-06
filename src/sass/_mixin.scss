@@ -7,26 +7,161 @@
   margin: 0 auto;
 }
 
-@mixin title {
+@mixin title($theme) {
   font-size: 24px;
   font-weight: 700;
   line-height: normal;
+
+  @if $theme == light {
+    color: $color4;
+  } @else if $theme == dark {
+    color: $color1;
+  }
 }
 
-@mixin text {
+@mixin text($theme) {
   font-size: 16px;
   font-weight: 400;
   line-height: 33px;
+  color: $color4;
+
+  @if $theme == light {
+    color: $color4;
+  } @else if $theme == dark {
+    color: $color1;
+  }
 }
 
 @mixin logo {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  gap: 12px;
+  outline-color: $unchangeableColor3;
+  outline-offset: 2px;
+
   &-svg {
     width: 40px;
     height: 40px;
   }
 
   &-title {
-    @include title;
+    @include title(light);
+    color: $unchangeableColor3;
+  }
+}
 
+@mixin statisticLink {
+  @include text(light);
+  line-height: normal;
+  color: $unchangeableColor3;
+  outline: none;
+  transition:  color .3s ease-in-out;
+
+  &:focus-visible, &:hover {
+    color: $unchangeableColor4;
+  }
+
+  &-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  &-svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@mixin changeThemeBtn {
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  background-image: url('../images/lamp-for-changing-theme.png');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  outline-color: $unchangeableColor3;
+  outline-offset: 2px;
+}
+
+@mixin listDisc {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: $unchangeableColor3;
+}
+
+@mixin input($theme) {
+  height: 55px;
+  padding: 20px 15px;
+  font-size: 16px;
+  font-weight: 300;
+
+  &::placeholder {
+    color: currentColor;
+  }
+
+  @if $theme == light {
+    color: $color5;
+    border: 1px solid $color3;
+    background-color: $color1;
+    outline-color: $color5;
+  } @else if $theme == dark {
+    border: 1px solid $color2;
+    background-color: $color5;
+    color: $color1;
+    outline-color: $color1;
+  }
+}
+
+@mixin btn {
+  cursor: pointer;
+  width: max-content;
+  min-height: 55px;
+  padding: 15px 50px;
+  font-size: 16px;
+  font-weight: 500;
+  color: $color1;
+  background-color: $unchangeableColor1;
+  outline: none;
+  transition: background-color .3s ease-in-out;
+
+  &:focus-visible:not(:disabled), &:hover:not(:disabled) {
+    background-color: $unchangeableColor2;
+  }
+
+  &:disabled {
+    opacity: 0.8;
+    cursor: default;
+  }
+}
+
+@mixin btnWithoutBackground {
+  cursor: pointer;
+  width: max-content;
+  min-height: 55px;
+  padding: 15px 50px;
+  font-size: 16px;
+  font-weight: 500;
+  color: $color2;
+  background-color: transparent;
+  border: 2px solid $color2;
+  outline: none;
+  transition: background-color .3s ease-in-out, color .3s ease-in-out;
+
+  &:focus-visible:not(:disabled), &:hover:not(:disabled) {
+    background-color: $color2;
+    color: $color1;
+  }
+
+  &:disabled {
+    opacity: 0.8;
+    cursor: default;
   }
 }

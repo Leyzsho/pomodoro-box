@@ -6,12 +6,27 @@
 
   &__container {
     @include container;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr repeat(2, max-content);
+    gap: 20px;
     align-items: center;
   }
 
   &__logo {
     @include logo;
+  }
+
+  &__statistic-link {
+    @include statisticLink;
+  }
+
+  &__change-theme-btn {
+    @include changeThemeBtn;
+  }
+}
+
+body[data-theme="dark"] {
+  .header {
+    background-color: $color4;
   }
 }

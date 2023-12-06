@@ -68,4 +68,12 @@ h1, h2, h3, h4, p {
 body {
   font-family: 'MyriadPro';
   min-width: 320px;
+
+  &[data-theme="dark"] {
+    background-color: $color4;
+  }
+}
+
+main {
+  padding-top: 100px;
 }
