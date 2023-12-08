@@ -50,7 +50,7 @@
       color: $color1;
     }
 
-    &-tomato-count {
+    &-current-tomato {
       @include text(light);
       color: $color1;
     }
@@ -84,7 +84,7 @@
       }
 
     }
-    
+
     &-add-time {
       cursor: pointer;
       position: relative;
@@ -168,7 +168,7 @@
       font-weight: 300;
     }
 
-    &-current-tomato {
+    &-tomato-count {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -178,8 +178,7 @@
       border: 1px solid $color2;
     }
 
-    &-configuration {
-      cursor: pointer;
+    &-open-configuration {
       display: flex;
       gap: 5px;
       outline: none;
@@ -202,6 +201,100 @@
         border-radius: 50%;
         background-color: $color2;
         transition: background-color .3s ease-in-out;
+      }
+    }
+
+    &-configuration {
+      &-menu {
+        position: relative;
+        display: flex;
+        padding: 2px 0;
+        flex-direction: column;
+        background-color: $color4;
+
+        &::before {
+          content: '';
+          position: absolute;
+          z-index: -1;
+          top: -18px;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 10px solid transparent;
+          border-bottom: 10px solid $color4;
+        }
+      }
+
+      &-add-tomato, &-remove-tomato, &-edit, &-remove-task {
+        cursor: pointer;
+        width: 100%;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 16px;
+        font-weight: 300;
+        line-height: 17px;
+        color: $color5;
+        outline: none;
+        transition: opacity .1s ease-in-out, background-color .3s ease-in-out;
+
+        &:disabled {
+          opacity: 0.7;
+        }
+
+        &:focus-visible, &:hover {
+          background-color: $color3;
+        }
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      &-name-changing {
+        &-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          background-color: $color4;
+          padding: 0 6px;
+
+          &::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            top: 50%;
+            left: -18px;
+            transform: translateY(-50%);
+            border: 10px solid transparent;
+            border-right: 10px solid $color4;
+          }
+        }
+
+        &-input {
+          @include input(light);
+          text-align: center;
+          color: $color5;
+          background-color: inherit;
+          outline: none;
+          border: none;
+        }
+
+        &-btn {
+          cursor: pointer;
+          width: 24px;
+          height: 24px;
+          outline-color: $unchangeableColor3;
+          outline-offset: 2px;
+
+          svg {
+            width: inherit;
+            height: inherit;
+          }
+        }
       }
     }
 
@@ -240,6 +333,32 @@ body[data-theme="dark"] {
 
       &-item {
         @include text(dark);
+      }
+
+      &-configuration {
+        &-menu {
+          background-color: $color1;
+
+          &::before {
+            border-bottom-color: $color1;
+          }
+        }
+
+        &-add-tomato, &-remove-tomato, &-edit, &-remove-task {
+          &:focus-visible, &:hover {
+            background-color: $color4;
+          }
+        }
+
+        &-name-changing {
+          &-wrapper {
+            background-color: $color1;
+
+            &::before {
+              border-right-color: $color1;
+            }
+          }
+        }
       }
     }
 

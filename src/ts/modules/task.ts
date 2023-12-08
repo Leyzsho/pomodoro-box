@@ -1,48 +1,273 @@
+import tippy from 'tippy.js';
+import { hideAll } from 'tippy.js';
+import 'tippy.js/animations/shift-toward.css';
+
+import { v4 as uuidv4 } from 'uuid';
+
+import '../../images/configuration-add-tomato.svg';
+import '../../images/configuration-remove-tomato.svg';
+import '../../images/configuration-edit.svg';
+import '../../images/configuration-remove-task.svg';
+import '../../images/configuration-confirm-name-changing.svg';
+
+import { Timer } from './timer';
+import gsap from 'gsap';
 export interface ITaskInfo {
   name: string;
   tomatoCount: number;
+  id: string;
 }
 
 export default class Task {
+  private tomatoCountElement: HTMLSpanElement | null = null;
+  private nameElement: HTMLSpanElement | null = null;
+  private taskWrapper: HTMLLIElement | null = null;
+
   constructor(private taskInfo: ITaskInfo) {}
 
-  public createTaskElement(): HTMLLIElement {
-    const li: HTMLLIElement = document.createElement('li');
-    const tomatoCount: HTMLSpanElement = document.createElement('span');
-    const name: HTMLSpanElement = document.createElement('span');
-    const configuration: HTMLButtonElement = document.createElement('button');
+  // task info
 
-    li.classList.add('app__task-list-item');
-    tomatoCount.classList.add('app__task-list-tomato-count');
-    name.classList.add('app__task-list-name');
-    configuration.classList.add('app__task-list-configuration');
-
-    name.textContent = this.taskInfo.name;
-    tomatoCount.textContent = this.taskInfo.tomatoCount.toString();
-
-    configuration.append(document.createElement('span'));
-    configuration.append(document.createElement('span'));
-    configuration.append(document.createElement('span'));
-
-    li.append(tomatoCount);
-    li.append(name);
-    li.append(configuration);
-
-    return li;
-  }
-
-  public getInfoAboutTask(): ITaskInfo {
+  static createTaskInfo(name: string): ITaskInfo {
     return {
-      name: this.taskInfo.name,
-      tomatoCount: this.taskInfo.tomatoCount,
+      name: name,
+      tomatoCount: 1,
+      id: uuidv4(),
     };
   }
 
-  static saveTaskInLocalStorage(task: ITaskInfo): void {
-    const tasks: ITaskInfo[] = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : [];
+  public getTaskInfo(): ITaskInfo {
+    return {
+      name: this.taskInfo.name,
+      tomatoCount: this.taskInfo.tomatoCount,
+      id: this.taskInfo.id,
+    };
+  }
 
-    tasks.push(task);
+  // local storage
+
+  public saveTaskInLocalStorage(): void {
+    const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
+
+    tasks[this.taskInfo.id] = this.taskInfo;
 
     localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  private removeTaskInLocalStorage(): void {
+    const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
+
+    delete tasks[this.taskInfo.id];
+
+    if (this.taskInfo.id === Timer.getCurrentTaskId()) {
+      if (Object.values(tasks)[0]) {
+        Timer.setTaskForReadiness(Object.values(tasks)[0]);
+      } else Timer.clearReadiness();
+    }
+
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  // DOM elements
+
+  public createTaskElement(): HTMLLIElement {
+    this.taskWrapper = document.createElement('li');
+    const configuration: HTMLButtonElement = document.createElement('button');
+
+    this.tomatoCountElement = document.createElement('span');
+    this.nameElement = document.createElement('span');
+
+    this.taskWrapper.classList.add('app__task-list-item');
+    this.tomatoCountElement.classList.add('app__task-list-tomato-count');
+    this.nameElement.classList.add('app__task-list-name');
+    configuration.classList.add('app__task-list-open-configuration');
+
+    this.nameElement.textContent = this.taskInfo.name;
+    this.tomatoCountElement.textContent = this.taskInfo.tomatoCount.toString();
+
+    const configurationMenu: HTMLDivElement = this.createConfigurationMenu();
+
+    tippy(configuration, {
+      content: configurationMenu,
+      placement: 'bottom',
+      interactive: true,
+      animation: 'shift-toward',
+      trigger: 'mouseenter click',
+      offset: [0, 15],
+    });
+
+    configuration.append(document.createElement('span'));
+    configuration.append(document.createElement('span'));
+    configuration.append(document.createElement('span'));
+
+    this.taskWrapper.append(this.tomatoCountElement);
+    this.taskWrapper.append(this.nameElement);
+    this.taskWrapper.append(configuration);
+
+    return this.taskWrapper;
+  }
+
+  private updateTaskElement(): void {
+    if (this.tomatoCountElement) {
+      this.tomatoCountElement.textContent = this.taskInfo.tomatoCount.toString();
+    }
+
+    if (this.nameElement) {
+      this.nameElement.textContent = this.taskInfo.name;
+    }
+
+    if (this.taskInfo.id === Timer.getCurrentTaskId()) {
+      Timer.setTaskForReadiness(this.taskInfo);
+    }
+  }
+
+  private createConfigurationMenu(): HTMLDivElement {
+    const menuWrapper: HTMLDivElement = document.createElement('div');
+
+    const addTomatoBtn: HTMLButtonElement = document.createElement('button');
+    const removeTomatoBtn: HTMLButtonElement = document.createElement('button');
+    const editNameBtn: HTMLButtonElement = document.createElement('button');
+    const removeTaskBtn: HTMLButtonElement = document.createElement('button');
+
+    menuWrapper.classList.add('app__task-list-configuration-menu');
+    addTomatoBtn.classList.add('app__task-list-configuration-add-tomato');
+    removeTomatoBtn.classList.add('app__task-list-configuration-remove-tomato');
+    editNameBtn.classList.add('app__task-list-configuration-edit');
+    removeTaskBtn.classList.add('app__task-list-configuration-remove-task');
+
+    addTomatoBtn.textContent = 'Увеличить';
+    removeTomatoBtn.textContent = 'Уменьшить';
+    editNameBtn.textContent = 'Редактировать';
+    removeTaskBtn.textContent = 'Удалить';
+
+    if (this.taskInfo.tomatoCount + 1 === 10) {
+      addTomatoBtn.disabled = true;
+    }
+
+    if (this.taskInfo.tomatoCount - 1 === 0) {
+      removeTomatoBtn.disabled = true;
+    }
+
+    const addTomatoSvg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const removeTomatoSvg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const editSvg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const removeTaskSvg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const addTomatoUse: SVGUseElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    const removeTomatoUse: SVGUseElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    const editUse: SVGUseElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    const removeTaskUse: SVGUseElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+
+    addTomatoUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#configuration-add-tomato');
+    removeTomatoUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#configuration-remove-tomato');
+    editUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#configuration-edit');
+    removeTaskUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#configuration-remove-task');
+
+    addTomatoSvg.append(addTomatoUse);
+    removeTomatoSvg.append(removeTomatoUse);
+    editSvg.append(editUse);
+    removeTaskSvg.append(removeTaskUse);
+
+    addTomatoBtn.prepend(addTomatoSvg);
+    removeTomatoBtn.prepend(removeTomatoSvg);
+    editNameBtn.prepend(editSvg);
+    removeTaskBtn.prepend(removeTaskSvg);
+
+    const editNameWrapper: HTMLDivElement = document.createElement('div');
+    const editNameInput: HTMLInputElement = document.createElement('input');
+    const confirmNameChangingBtn: HTMLButtonElement = document.createElement('button');
+    const confirmNameChangingSvg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const confirmNameChangingUse: SVGUseElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+
+    confirmNameChangingUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#configuration-confirm-name-changing');
+
+    editNameWrapper.classList.add('app__task-list-configuration-name-changing-wrapper');
+    editNameInput.classList.add('app__task-list-configuration-name-changing-input');
+    confirmNameChangingBtn.classList.add('app__task-list-configuration-name-changing-btn');
+
+    gsap.set(editNameInput, { height: editNameBtn.offsetHeight });
+
+    editNameInput.placeholder = 'название задачи';
+
+    confirmNameChangingSvg.append(confirmNameChangingUse);
+    confirmNameChangingBtn.append(confirmNameChangingSvg);
+    editNameWrapper.append(editNameInput);
+    editNameWrapper.append(confirmNameChangingBtn);
+
+    tippy(editNameBtn, {
+      content: editNameWrapper,
+      placement: 'right',
+      interactive: true,
+      animation: 'shift-toward',
+      trigger: 'click',
+      offset: [0, 15],
+    });
+
+    addTomatoBtn.addEventListener('click', () => {
+      removeTomatoBtn.disabled = false;
+
+      if (this.tomatoCountElement) {
+        this.taskInfo.tomatoCount < 9 ? this.addTomato() : addTomatoBtn.disabled = true;
+
+        if (this.taskInfo.tomatoCount + 1 === 10) {
+          addTomatoBtn.disabled = true;
+        }
+      }
+    });
+
+    removeTomatoBtn.addEventListener('click', () => {
+      addTomatoBtn.disabled = false;
+
+      if (this.tomatoCountElement) {
+        this.taskInfo.tomatoCount > 1 ? this.removeTomato() : removeTomatoBtn.disabled = true;
+
+        if (this.taskInfo.tomatoCount - 1 === 0) {
+          removeTomatoBtn.disabled = true;
+        }
+      }
+    });
+
+    editNameInput.addEventListener('keypress', (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        confirmNameChangingBtn.click();
+      }
+    });
+
+    removeTaskBtn.addEventListener('click', () => {
+      this.removeTask();
+    });
+
+    confirmNameChangingBtn.addEventListener('click', () => {
+      hideAll();
+      this.editName(editNameInput.value.trim());
+    });
+
+    menuWrapper.append(addTomatoBtn);
+    menuWrapper.append(removeTomatoBtn);
+    menuWrapper.append(editNameBtn);
+    menuWrapper.append(removeTaskBtn);
+
+    return menuWrapper;
+  }
+
+  private addTomato(): void {
+    this.taskInfo.tomatoCount += 1;
+    this.saveTaskInLocalStorage();
+    this.updateTaskElement();
+  }
+
+  private removeTomato(): void {
+    this.taskInfo.tomatoCount -= 1;
+    this.saveTaskInLocalStorage();
+    this.updateTaskElement();
+  }
+
+  private editName(name: string): void {
+    this.taskInfo.name = name;
+    this.saveTaskInLocalStorage();
+    this.updateTaskElement();
+  }
+
+  private removeTask(): void {
+    this.taskWrapper?.remove();
+    this.removeTaskInLocalStorage();
   }
 }

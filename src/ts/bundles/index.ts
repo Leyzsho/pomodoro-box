@@ -29,30 +29,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if(localStorage.getItem('tasks')) {
     taskList ? taskList.innerHTML = '' : '';
 
-    const currentTask: ITaskInfo = JSON.parse(localStorage.getItem('current-task') as string);
-    Timer.setTaskForReadiness(currentTask);
+    const tasks: Record<string, ITaskInfo> = JSON.parse(localStorage.getItem('tasks') as string);
 
-    const tasks: ITaskInfo[] = JSON.parse(localStorage.getItem('tasks') as string);
-
-    tasks.forEach((taskInfo) => {
+    Object.values(tasks).forEach((taskInfo) => {
       const task: Task = new Task(taskInfo);
+
+      if (task.getTaskInfo().id === Timer.getCurrentTaskId()) {
+        Timer.setTaskForReadiness(task.getTaskInfo());
+      }
 
       taskList?.append(task.createTaskElement());
     });
   }
 
   if (addTaskBtn && taskNameInput) {
-    const taskInfo: ITaskInfo = {
-      name: '',
-      tomatoCount: 1,
-    };
-
     taskNameInput.addEventListener('input', (event: Event) => {
       const inputElement = event.currentTarget as HTMLInputElement;
 
       if (inputElement.value !== '') {
         addTaskBtn !== null ? addTaskBtn.disabled = false : '';
-        taskInfo.name = inputElement.value.trim();
       } else {
         addTaskBtn !== null ? addTaskBtn.disabled = true : '';
       }
@@ -66,13 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addTaskBtn.addEventListener('click', () => {
 
-      const task: Task = new Task(taskInfo);
+      const task: Task = new Task(Task.createTaskInfo(taskNameInput.value.trim()));
 
       taskList?.append(task.createTaskElement());
 
-      Task.saveTaskInLocalStorage(task.getInfoAboutTask());
+      task.saveTaskInLocalStorage();
 
-      Timer.setTaskForReadiness(task.getInfoAboutTask());
+      Timer.setTaskForReadiness(task.getTaskInfo());
 
       taskNameInput.value = '';
       addTaskBtn.disabled = true;

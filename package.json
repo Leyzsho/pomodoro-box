@@ -14,6 +14,7 @@
     "@babel/preset-typescript": "^7.23.3",
     "@types/babel__core": "^7.20.5",
     "@types/jest": "^29.5.10",
+    "@types/uuid": "^9.0.7",
     "@typescript-eslint/eslint-plugin": "^6.12.0",
     "@typescript-eslint/parser": "^6.12.0",
     "babel-jest": "^29.7.0",
@@ -45,5 +46,10 @@
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
     "webpack-server": "^0.1.2"
+  },
+  "dependencies": {
+    "gsap": "^3.12.3",
+    "tippy.js": "^6.3.7",
+    "uuid": "^9.0.1"
   }
 }
