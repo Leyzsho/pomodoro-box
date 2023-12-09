@@ -32,6 +32,13 @@
   }
 }
 
+@mixin textLightWeight {
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 17px;
+  color: $color5;
+}
+
 @mixin logo {
   display: flex;
   align-items: center;
@@ -110,7 +117,7 @@
   @if $theme == light {
     color: $color5;
     border: 1px solid $color3;
-    background-color: $color1;
+    background-color: $color3;
     outline-color: $color5;
   } @else if $theme == dark {
     border: 1px solid $color2;

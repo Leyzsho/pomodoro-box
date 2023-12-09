@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.values(tasks).forEach((taskInfo) => {
       const task: Task = new Task(taskInfo);
 
-      if (task.getTaskInfo().id === Timer.getCurrentTaskId()) {
-        Timer.setTaskForReadiness(task.getTaskInfo());
+      if (task.taskInfo.id === Timer.getCurrentTaskId()) {
+        Timer.setTaskForReadiness(task.taskInfo);
       }
 
       taskList?.append(task.createTaskElement());
@@ -60,19 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     addTaskBtn.addEventListener('click', () => {
-
-      const task: Task = new Task(Task.createTaskInfo(taskNameInput.value.trim()));
+      const task: Task = new Task(Task.createDefaultTaskInfo(taskNameInput.value.trim()));
 
       taskList?.append(task.createTaskElement());
 
-      task.saveTaskInLocalStorage();
-
-      Timer.setTaskForReadiness(task.getTaskInfo());
+      Timer.setTaskForReadiness(task.taskInfo);
 
       taskNameInput.value = '';
       addTaskBtn.disabled = true;
     });
   }
-
-  // task
 });

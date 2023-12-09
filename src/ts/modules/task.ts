@@ -23,31 +23,47 @@ export default class Task {
   private nameElement: HTMLSpanElement | null = null;
   private taskWrapper: HTMLLIElement | null = null;
 
-  constructor(private taskInfo: ITaskInfo) {}
+  constructor(public readonly taskInfo: ITaskInfo) {}
 
   // task info
 
-  static createTaskInfo(name: string): ITaskInfo {
+  static createDefaultTaskInfo(name: string): ITaskInfo {
     return {
-      name: name,
+      name,
       tomatoCount: 1,
       id: uuidv4(),
     };
   }
 
-  public getTaskInfo(): ITaskInfo {
-    return {
-      name: this.taskInfo.name,
-      tomatoCount: this.taskInfo.tomatoCount,
-      id: this.taskInfo.id,
-    };
+  // full time
+
+  private static getFullTasksTime(): string | null {
+    if (localStorage.getItem('tasks')) {
+      const tasks: Record<string, ITaskInfo> = JSON.parse(localStorage.getItem('tasks') as string);
+      let minutes: number = Object.values(tasks).reduce((acc, task) => acc + task.tomatoCount * 25, 0);
+      let hours: number = 0;
+      while (minutes > 59) {
+        hours += 1;
+        minutes -= 60;
+      }
+
+      if (hours > 0) {
+        return `${hours} ч. ${minutes} мин.`;
+      } else return `${minutes} мин.`;
+    } else return null;
+  }
+
+  private static updateFullTimeElement(): void {
+    const fullTime: HTMLSpanElement | null = document.querySelector('.app__task-list-full-time');
+    if (this.getFullTasksTime() !== null) {
+      fullTime ? fullTime.textContent = this.getFullTasksTime() : '';
+    } else fullTime ? fullTime.textContent = '' : '';
   }
 
   // local storage
 
   public saveTaskInLocalStorage(): void {
     const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
-
     tasks[this.taskInfo.id] = this.taskInfo;
 
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -61,17 +77,22 @@ export default class Task {
     if (this.taskInfo.id === Timer.getCurrentTaskId()) {
       if (Object.values(tasks)[0]) {
         Timer.setTaskForReadiness(Object.values(tasks)[0]);
-      } else Timer.clearReadiness();
+      } else {
+        Timer.clearReadiness();
+      }
     }
 
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    if (Object.values(tasks)[0]) {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    } else localStorage.removeItem('tasks');
   }
 
-  // DOM elements
+  // task element
 
   public createTaskElement(): HTMLLIElement {
     this.taskWrapper = document.createElement('li');
     const configuration: HTMLButtonElement = document.createElement('button');
+    const configurationMenu: HTMLDivElement = this.createConfigurationMenu();
 
     this.tomatoCountElement = document.createElement('span');
     this.nameElement = document.createElement('span');
@@ -84,7 +105,19 @@ export default class Task {
     this.nameElement.textContent = this.taskInfo.name;
     this.tomatoCountElement.textContent = this.taskInfo.tomatoCount.toString();
 
-    const configurationMenu: HTMLDivElement = this.createConfigurationMenu();
+    this.taskWrapper.setAttribute('tabindex', '0');
+
+    this.taskWrapper.addEventListener('click', (event) => {
+      if (event.target === this.taskWrapper || event.target === this.tomatoCountElement || event.target === this.nameElement) {
+        Timer.setTaskForReadiness(this.taskInfo);
+      }
+    });
+
+    this.taskWrapper.addEventListener('keypress', (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        Timer.setTaskForReadiness(this.taskInfo);
+      }
+    });
 
     tippy(configuration, {
       content: configurationMenu,
@@ -103,10 +136,15 @@ export default class Task {
     this.taskWrapper.append(this.nameElement);
     this.taskWrapper.append(configuration);
 
+    this.saveTaskInLocalStorage();
+    Task.updateFullTimeElement();
+
     return this.taskWrapper;
   }
 
   private updateTaskElement(): void {
+    Task.updateFullTimeElement();
+
     if (this.tomatoCountElement) {
       this.tomatoCountElement.textContent = this.taskInfo.tomatoCount.toString();
     }
@@ -119,6 +157,8 @@ export default class Task {
       Timer.setTaskForReadiness(this.taskInfo);
     }
   }
+
+  // configuration element
 
   private createConfigurationMenu(): HTMLDivElement {
     const menuWrapper: HTMLDivElement = document.createElement('div');
@@ -269,5 +309,6 @@ export default class Task {
   private removeTask(): void {
     this.taskWrapper?.remove();
     this.removeTaskInLocalStorage();
+    Task.updateFullTimeElement();
   }
 }
