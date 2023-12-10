@@ -10,7 +10,7 @@ import '../../images/configuration-edit.svg';
 import '../../images/configuration-remove-task.svg';
 import '../../images/configuration-confirm-name-changing.svg';
 
-import { Timer } from './timer';
+import { TIME_STATUS, Timer } from './timer';
 import gsap from 'gsap';
 export interface ITaskInfo {
   name: string;
@@ -19,13 +19,15 @@ export interface ITaskInfo {
 }
 
 export default class Task {
+  // element methods
+
   private tomatoCountElement: HTMLSpanElement | null = null;
   private nameElement: HTMLSpanElement | null = null;
   private taskWrapper: HTMLLIElement | null = null;
 
   constructor(public readonly taskInfo: ITaskInfo) {}
 
-  // task info
+  // task info methods
 
   static createDefaultTaskInfo(name: string): ITaskInfo {
     return {
@@ -35,7 +37,7 @@ export default class Task {
     };
   }
 
-  // full time
+  // full time methods
 
   private static getFullTasksTime(): string | null {
     if (localStorage.getItem('tasks')) {
@@ -60,7 +62,7 @@ export default class Task {
     } else fullTime ? fullTime.textContent = '' : '';
   }
 
-  // local storage
+  // local storage methods
 
   public saveTaskInLocalStorage(): void {
     const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
@@ -75,6 +77,7 @@ export default class Task {
     delete tasks[this.taskInfo.id];
 
     if (this.taskInfo.id === Timer.getCurrentTaskId()) {
+      Timer.timeStatus = TIME_STATUS.READINESS;
       if (Object.values(tasks)[0]) {
         Timer.setTaskForReadiness(Object.values(tasks)[0]);
       } else {
@@ -87,7 +90,25 @@ export default class Task {
     } else localStorage.removeItem('tasks');
   }
 
-  // task element
+  private static removeTaskInLocalStorageById(id: string): void {
+    const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
+
+    delete tasks[id];
+
+    if (id === Timer.getCurrentTaskId()) {
+      if (Object.values(tasks)[0]) {
+        Timer.setTaskForReadiness(Object.values(tasks)[0]);
+      } else {
+        Timer.clearReadiness();
+      }
+    }
+
+    if (Object.values(tasks)[0]) {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    } else localStorage.removeItem('tasks');
+  }
+
+  // task element methods
 
   public createTaskElement(): HTMLLIElement {
     this.taskWrapper = document.createElement('li');
@@ -102,6 +123,7 @@ export default class Task {
     this.nameElement.classList.add('app__task-list-name');
     configuration.classList.add('app__task-list-open-configuration');
 
+    this.taskWrapper.setAttribute('data-id', this.taskInfo.id);
     this.nameElement.textContent = this.taskInfo.name;
     this.tomatoCountElement.textContent = this.taskInfo.tomatoCount.toString();
 
@@ -154,11 +176,27 @@ export default class Task {
     }
 
     if (this.taskInfo.id === Timer.getCurrentTaskId()) {
+      Timer.timeStatus = TIME_STATUS.READINESS;
       Timer.setTaskForReadiness(this.taskInfo);
     }
   }
 
-  // configuration element
+  public static updateTomatoCountById(id: string): void {
+    const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
+    const task: ITaskInfo = tasks[id];
+    task.tomatoCount -= 1;
+    tasks[id] = task;
+
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+
+    Task.updateFullTimeElement();
+
+    const taskELement: HTMLLIElement | null = document.querySelector(`.app__task-list-item[data-id="${id}"]`);
+    const tomatoCountElement: HTMLSpanElement | null = taskELement ? taskELement.querySelector('.app__task-list-tomato-count') : null;
+    tomatoCountElement ? tomatoCountElement.textContent = task.tomatoCount.toString() : '';
+  }
+
+  // configuration element methods
 
   private createConfigurationMenu(): HTMLDivElement {
     const menuWrapper: HTMLDivElement = document.createElement('div');
@@ -309,6 +347,12 @@ export default class Task {
   private removeTask(): void {
     this.taskWrapper?.remove();
     this.removeTaskInLocalStorage();
+    Task.updateFullTimeElement();
+  }
+
+  public static removeTaskById(id: string): void {
+    document.querySelector(`.app__task-list-item[data-id="${id}"]`)?.remove();
+    Task.removeTaskInLocalStorageById(id);
     Task.updateFullTimeElement();
   }
 }

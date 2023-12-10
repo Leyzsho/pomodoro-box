@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addTaskBtn.addEventListener('click', () => {
       const task: Task = new Task(Task.createDefaultTaskInfo(taskNameInput.value.trim()));
 
-      taskList?.append(task.createTaskElement());
+      taskList?.prepend(task.createTaskElement());
 
       Timer.setTaskForReadiness(task.taskInfo);
 
