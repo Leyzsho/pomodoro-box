@@ -2,7 +2,7 @@ import '../../images/logo.svg';
 import '../../images/statistic-link.svg';
 import Task, { ITaskInfo } from '../modules/task';
 import { KINDS_OF_THEME, Theme } from '../modules/theme';
-import { Timer } from '../modules/timer';
+import { TASK_STATUS, Timer } from '../modules/timer';
 
 document.addEventListener('DOMContentLoaded', () => {
   // changing theme
@@ -33,12 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     Object.values(tasks).forEach((taskInfo) => {
       const task: Task = new Task(taskInfo);
+      taskList?.append(task.createTaskElement());
 
       if (task.taskInfo.id === Timer.getCurrentTaskId()) {
         Timer.setTaskForReadiness(task.taskInfo);
       }
-
-      taskList?.append(task.createTaskElement());
     });
   }
 
@@ -61,9 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addTaskBtn.addEventListener('click', () => {
       const task: Task = new Task(Task.createDefaultTaskInfo(taskNameInput.value.trim()));
-
       taskList?.prepend(task.createTaskElement());
 
+      const currentTaskId = Timer.getCurrentTaskId();
+
+      if (localStorage.getItem('current-task-status') === TASK_STATUS.ACTIVE_COMPLETE && currentTaskId !== null) {
+        Task.removeTaskById(currentTaskId);
+      }
       Timer.setTaskForReadiness(task.taskInfo);
 
       taskNameInput.value = '';

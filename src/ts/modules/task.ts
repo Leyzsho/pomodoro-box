@@ -11,6 +11,7 @@ import '../../images/configuration-remove-task.svg';
 import '../../images/configuration-confirm-name-changing.svg';
 
 import { TIME_STATUS, Timer } from './timer';
+import { TASK_STATUS } from './timer';
 import gsap from 'gsap';
 export interface ITaskInfo {
   name: string;
@@ -72,12 +73,15 @@ export default class Task {
   }
 
   private removeTaskInLocalStorage(): void {
+    localStorage.removeItem('current-task-status');
+    localStorage.removeItem('current-task-time');
+    localStorage.removeItem('current-task-tomato');
+
     const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
 
     delete tasks[this.taskInfo.id];
 
     if (this.taskInfo.id === Timer.getCurrentTaskId()) {
-      Timer.timeStatus = TIME_STATUS.READINESS;
       if (Object.values(tasks)[0]) {
         Timer.setTaskForReadiness(Object.values(tasks)[0]);
       } else {
@@ -91,6 +95,10 @@ export default class Task {
   }
 
   private static removeTaskInLocalStorageById(id: string): void {
+    localStorage.removeItem('current-task-status');
+    localStorage.removeItem('current-task-time');
+    localStorage.removeItem('current-task-tomato');
+
     const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
 
     delete tasks[id];
@@ -130,12 +138,24 @@ export default class Task {
     this.taskWrapper.setAttribute('tabindex', '0');
 
     this.taskWrapper.addEventListener('click', (event) => {
+      const currentTaskId = Timer.getCurrentTaskId();
+
+      if (localStorage.getItem('current-task-status') === TASK_STATUS.ACTIVE_COMPLETE && currentTaskId !== null) {
+        Task.removeTaskById(currentTaskId);
+      }
+
       if (event.target === this.taskWrapper || event.target === this.tomatoCountElement || event.target === this.nameElement) {
         Timer.setTaskForReadiness(this.taskInfo);
       }
     });
 
     this.taskWrapper.addEventListener('keypress', (event: KeyboardEvent) => {
+      const currentTaskId = Timer.getCurrentTaskId();
+
+      if (localStorage.getItem('current-task-status') === TASK_STATUS.ACTIVE_COMPLETE && currentTaskId !== null) {
+        Task.removeTaskById(currentTaskId);
+      }
+
       if (event.key === 'Enter') {
         Timer.setTaskForReadiness(this.taskInfo);
       }
@@ -176,8 +196,7 @@ export default class Task {
     }
 
     if (this.taskInfo.id === Timer.getCurrentTaskId()) {
-      Timer.timeStatus = TIME_STATUS.READINESS;
-      Timer.setTaskForReadiness(this.taskInfo);
+      Timer.updateTaskInfo(this.taskInfo);
     }
   }
 
@@ -345,6 +364,7 @@ export default class Task {
   }
 
   private removeTask(): void {
+    Timer.timeStatus = TIME_STATUS.READINESS;
     this.taskWrapper?.remove();
     this.removeTaskInLocalStorage();
     Task.updateFullTimeElement();
