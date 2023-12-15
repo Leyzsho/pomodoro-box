@@ -38,13 +38,16 @@ export class Timer {
   private static TimeInterval: NodeJS.Timeout;
 
   private static __defaultTime: number = 10;
-  private static __defaultBreakTime: number = 5;
+  private static __defaultShortBreakTime: number = 5;
+  private static __defaultLongBreakTime: number = 15;
 
   private static timeElement: HTMLSpanElement | null = document.querySelector('.app__task-time');
   private static addTimeBtn: HTMLButtonElement | null = document.querySelector('.app__task-add-time');
 
   private static timeEndSound: HTMLAudioElement = document.createElement('audio');
   private static breakTimeEndSound: HTMLAudioElement = document.createElement('audio');
+
+  private static triggerOfLongBreak: number = 4;
 
   // btn element properties
 
@@ -64,8 +67,15 @@ export class Timer {
 
   // info methods
 
-  public static getCurrentTaskId(): string {
-    return Timer.taskInfo.id;
+  public static getCurrentTaskId(): string | null {
+    const currentTaskIdFromLocalStorage: string | null = localStorage.getItem('current-task-id');
+    if (currentTaskIdFromLocalStorage) {
+      return currentTaskIdFromLocalStorage;
+    }
+
+    if (Timer.taskInfo) {
+      return Timer.taskInfo.id;
+    } else return null;
   }
 
   public static updateTaskInfo(task: ITaskInfo): void {
@@ -83,6 +93,16 @@ export class Timer {
     Timer.firstBtnStatus = FIRST_BTN_STATUS.START;
     Timer.secondBtnStatus = SECOND_BTN_STATUS.STOP;
     Timer.addTimeBtn ? Timer.addTimeBtn.disabled = false : '';
+
+    if (Timer.firstBtn) {
+      Timer.firstBtn.disabled = false;
+      Timer.firstBtn.textContent = 'Старт';
+    }
+
+    if (Timer.secondBtn) {
+      Timer.secondBtn.disabled = true;
+      Timer.secondBtn ? Timer.secondBtn.textContent = 'Стоп' : '';
+    }
 
     clearInterval(Timer.TimeInterval);
     Timer.setTimeByDefault();
@@ -142,7 +162,7 @@ export class Timer {
 
           Timer.timeElement ? Timer.timeElement.textContent = Timer.getNormalTimeFormat() : '';
 
-          if (taskTimeFromLocalStorage !== Timer.__defaultBreakTime && Timer.firstBtn && Timer.secondBtn) {
+          if (taskTimeFromLocalStorage !== Timer.__defaultShortBreakTime && Timer.firstBtn && Timer.secondBtn) {
             Timer.firstBtn.textContent = 'Продолжить';
             Timer.firstBtnStatus = FIRST_BTN_STATUS.CONTINUE_BREAK;
 
@@ -195,17 +215,15 @@ export class Timer {
           };
         }
 
-        Timer.addTimeBtn ? Timer.addTimeBtn.disabled = false : '';
-
         if (Timer.addTimeBtn) {
           Timer.addTimeBtn.onclick = () => {
             Timer.addTimeForCurrentTask(60);
           };
         }
 
-        localStorage.setItem('current-task-id', task.id);
         localStorage.setItem('current-task-time', Timer.currentTime.toString());
         localStorage.setItem('current-task-tomato', Timer.taskCurrentTomato.toString());
+        localStorage.setItem('current-task-id', Timer.taskInfo.id);
       }
     }
   }
@@ -232,8 +250,8 @@ export class Timer {
     }
 
     localStorage.removeItem('current-task-status');
-    localStorage.removeItem('current-task-id');
     localStorage.removeItem('current-task-time');
+    localStorage.removeItem('current-task-id');
     localStorage.removeItem('current-task-tomato');
   }
 
@@ -367,6 +385,11 @@ export class Timer {
     clearInterval(Timer.TimeInterval);
     localStorage.setItem('current-task-time', Timer.__defaultTime.toString());
 
+    const taskTomatoPassed: number | null = Number(localStorage.getItem('task-tomato-passed'));
+    if (taskTomatoPassed) {
+      localStorage.setItem('task-tomato-passed', (taskTomatoPassed + 1).toString());
+    } else localStorage.setItem('task-tomato-passed', (1).toString());
+
     Timer.playTimeEndSound();
 
     Timer.taskInfo.tomatoCount -= 1;
@@ -391,7 +414,7 @@ export class Timer {
       Timer.secondBtn ? Timer.secondBtn.textContent = 'Завершить' : '';
     } else {
       localStorage.setItem('current-task-status', TASK_STATUS.INACTIVE_BREAK);
-      localStorage.setItem('current-task-time', Timer.__defaultBreakTime.toString());
+      localStorage.setItem('current-task-time', Timer.__defaultShortBreakTime.toString());
       Timer.timeStatus = TIME_STATUS.BREAK;
       Timer.firstBtnStatus = FIRST_BTN_STATUS.START_BREAK;
       Timer.secondBtnStatus = SECOND_BTN_STATUS.DONE;
@@ -411,7 +434,12 @@ export class Timer {
   // break time
 
   private static setBreakTimeByDefault(): void {
-    Timer.currentTime = Timer.__defaultBreakTime;
+    const taskTomatoPassed: number | null = Number(localStorage.getItem('task-tomato-passed'));
+    if (taskTomatoPassed && taskTomatoPassed >= Timer.triggerOfLongBreak) {
+      Timer.currentTime = Timer.__defaultLongBreakTime;
+      localStorage.setItem('task-tomato-passed', (0).toString());
+    } else Timer.currentTime = Timer.__defaultShortBreakTime;
+
     Timer.timeElement ? Timer.timeElement.textContent = Timer.getNormalTimeFormat() : '';
     localStorage.setItem('current-task-time', Timer.currentTime.toString());
   }
@@ -423,7 +451,9 @@ export class Timer {
     Timer.setBreakTimeByDefault();
 
     const title: HTMLTitleElement | null = document.querySelector('.app__task-title');
-    title ? title.textContent = 'Перерыв' : '';
+
+    if (Timer.currentTime === Timer.__defaultShortBreakTime) title ? title.textContent = 'Перерыв' : '';
+    else title ? title.textContent = 'Длинный перерыв' : '';
 
     gsap.set(Timer.timeElement, { fontSize: 150 });
 

@@ -8,7 +8,7 @@ import '../../images/configuration-add-tomato.svg';
 import '../../images/configuration-remove-tomato.svg';
 import '../../images/configuration-edit.svg';
 import '../../images/configuration-remove-task.svg';
-import '../../images/configuration-confirm-name-changing.svg';
+import '../../images/confirm-changing.svg';
 
 import { TIME_STATUS, Timer } from './timer';
 import { TASK_STATUS } from './timer';
@@ -76,6 +76,7 @@ export default class Task {
     localStorage.removeItem('current-task-status');
     localStorage.removeItem('current-task-time');
     localStorage.removeItem('current-task-tomato');
+    localStorage.removeItem('current-task-id');
 
     const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
 
@@ -98,6 +99,7 @@ export default class Task {
     localStorage.removeItem('current-task-status');
     localStorage.removeItem('current-task-time');
     localStorage.removeItem('current-task-tomato');
+    localStorage.removeItem('current-task-id');
 
     const tasks: Record<string, ITaskInfo> = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks') as string) : {};
 
@@ -120,7 +122,7 @@ export default class Task {
 
   public createTaskElement(): HTMLLIElement {
     this.taskWrapper = document.createElement('li');
-    const configuration: HTMLButtonElement = document.createElement('button');
+    const configurationTrigger: HTMLButtonElement = document.createElement('button');
     const configurationMenu: HTMLDivElement = this.createConfigurationMenu();
 
     this.tomatoCountElement = document.createElement('span');
@@ -129,7 +131,7 @@ export default class Task {
     this.taskWrapper.classList.add('app__task-list-item');
     this.tomatoCountElement.classList.add('app__task-list-tomato-count');
     this.nameElement.classList.add('app__task-list-name');
-    configuration.classList.add('app__task-list-open-configuration');
+    configurationTrigger.classList.add('app__task-list-configuration-trigger');
 
     this.taskWrapper.setAttribute('data-id', this.taskInfo.id);
     this.nameElement.textContent = this.taskInfo.name;
@@ -161,7 +163,7 @@ export default class Task {
       }
     });
 
-    tippy(configuration, {
+    tippy(configurationTrigger, {
       content: configurationMenu,
       placement: 'bottom',
       interactive: true,
@@ -170,13 +172,13 @@ export default class Task {
       offset: [0, 15],
     });
 
-    configuration.append(document.createElement('span'));
-    configuration.append(document.createElement('span'));
-    configuration.append(document.createElement('span'));
+    configurationTrigger.append(document.createElement('span'));
+    configurationTrigger.append(document.createElement('span'));
+    configurationTrigger.append(document.createElement('span'));
 
     this.taskWrapper.append(this.tomatoCountElement);
     this.taskWrapper.append(this.nameElement);
-    this.taskWrapper.append(configuration);
+    this.taskWrapper.append(configurationTrigger);
 
     this.saveTaskInLocalStorage();
     Task.updateFullTimeElement();
@@ -226,10 +228,10 @@ export default class Task {
     const removeTaskBtn: HTMLButtonElement = document.createElement('button');
 
     menuWrapper.classList.add('app__task-list-configuration-menu');
-    addTomatoBtn.classList.add('app__task-list-configuration-add-tomato');
-    removeTomatoBtn.classList.add('app__task-list-configuration-remove-tomato');
-    editNameBtn.classList.add('app__task-list-configuration-edit');
-    removeTaskBtn.classList.add('app__task-list-configuration-remove-task');
+    addTomatoBtn.classList.add('app__task-list-configuration-btn');
+    removeTomatoBtn.classList.add('app__task-list-configuration-btn');
+    editNameBtn.classList.add('app__task-list-configuration-btn');
+    removeTaskBtn.classList.add('app__task-list-configuration-btn');
 
     addTomatoBtn.textContent = 'Увеличить';
     removeTomatoBtn.textContent = 'Уменьшить';
@@ -274,7 +276,7 @@ export default class Task {
     const confirmNameChangingSvg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     const confirmNameChangingUse: SVGUseElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
 
-    confirmNameChangingUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#configuration-confirm-name-changing');
+    confirmNameChangingUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#confirm-changing');
 
     editNameWrapper.classList.add('app__task-list-configuration-name-changing-wrapper');
     editNameInput.classList.add('app__task-list-configuration-name-changing-input');

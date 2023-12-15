@@ -41,7 +41,7 @@
       min-height: 55px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 30px;
       margin-bottom: 70px;
       padding: 0 40px;
       background-color: $color2;
@@ -51,11 +51,54 @@
       font-size: 16px;
       font-weight: 700;
       color: $color1;
+      margin-right: auto;
     }
 
     &-current-tomato {
       @include text(light);
       color: $color1;
+    }
+
+    &-settings {
+      &-trigger {
+        cursor: pointer;
+        width: 24px;
+        height: 24px;
+        outline-color: $unchangeableColor3;
+        outline-offset: 2px;
+
+        svg {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      &-menu {
+        @include tippyMenu(light);
+        padding: 0;
+      }
+
+      &-btn {
+        @include tippyBtn(light);
+        justify-content: flex-end;
+        text-align: right;
+      }
+
+      &-switching-notices {
+        &-wrapper {
+          width: 100%;
+          padding: 10px 15px;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          gap: 6px;
+          @include textLightWeight;
+        }
+
+        &-btn {
+          @include switchingBtn(light);
+        }
+      }
     }
 
     &-time {
@@ -164,58 +207,33 @@
       border: 1px solid $color2;
     }
 
-    &-open-configuration {
-      display: flex;
-      gap: 5px;
-      outline: none;
-
-      &:focus-visible, &:hover {
-        & span {
-          background-color: $unchangeableColor1;
-        }
-      }
-
-      & span {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background-color: $color2;
-        transition: background-color .3s ease-in-out;
-      }
-    }
-
     &-configuration {
-      &-menu {
-        position: relative;
+      &-trigger {
         display: flex;
-        padding: 2px 0;
-        flex-direction: column;
-        background-color: $color4;
-      }
-
-      &-add-tomato, &-remove-tomato, &-edit, &-remove-task {
-        cursor: pointer;
-        width: 100%;
-        padding: 10px 15px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        @include textLightWeight;
+        gap: 5px;
         outline: none;
-        transition: opacity .1s ease-in-out, background-color .3s ease-in-out;
-
-        &:disabled {
-          opacity: 0.7;
-        }
 
         &:focus-visible, &:hover {
-          background-color: $color3;
+          & span {
+            background-color: $unchangeableColor1;
+          }
         }
 
-        svg {
-          width: 18px;
-          height: 18px;
+        & span {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background-color: $color2;
+          transition: background-color .3s ease-in-out;
         }
+      }
+
+      &-menu {
+        @include tippyMenu(light);
+      }
+
+      &-btn {
+        @include tippyBtn(light);
       }
 
       &-name-changing {
@@ -306,13 +324,11 @@ body[data-theme="dark"] {
 
       &-configuration {
         &-menu {
-          background-color: $color3;
+          @include tippyMenu(dark);
         }
 
-        &-add-tomato, &-remove-tomato, &-edit, &-remove-task {
-          &:focus-visible, &:hover {
-            background-color: $color4;
-          }
+        &-btn {
+          @include tippyBtn(dark);
         }
 
         &-name-changing {
@@ -329,6 +345,22 @@ body[data-theme="dark"] {
 
     &__task {
       background-color: $color4;
+
+      &-settings {
+        &-menu {
+          @include tippyMenu(dark);
+        }
+
+        &-btn {
+          @include tippyBtn(dark);
+        }
+
+        &-switching-notices {
+          &-btn {
+            @include switchingBtn(dark);
+          }
+        }
+      }
 
       &-time {
         color: $color1;

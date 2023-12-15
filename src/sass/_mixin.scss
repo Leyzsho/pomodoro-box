@@ -172,3 +172,71 @@
     cursor: default;
   }
 }
+
+@mixin tippyMenu($theme) {
+  position: relative;
+  display: flex;
+  padding: 2px 0;
+  flex-direction: column;
+
+  @if $theme == light {
+    background-color: $color4;
+  } @else if $theme == dark {
+    background-color: $color3;
+  }
+}
+
+@mixin tippyBtn($theme) {
+  cursor: pointer;
+  width: 100%;
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  @include textLightWeight;
+  outline: none;
+  transition: opacity .1s ease-in-out, background-color .3s ease-in-out;
+
+  &:disabled {
+    opacity: 0.7;
+  }
+
+  @if $theme == light {
+    &:focus-visible, &:hover {
+      background-color: $color3;
+    }
+  } @else if $theme == dark {
+    &:focus-visible, &:hover {
+      background-color: $color4;
+    }
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@mixin switchingBtn($theme) {
+  cursor: pointer;
+  width: 50px;
+  height: 24px;
+  border-radius: 34px;
+  padding: 0 4px;
+  outline-color: $unchangeableColor3;
+  
+
+  @if $theme == light {
+    background-color: $color3;
+  } @else if $theme == dark {
+    background-color: $color4;
+  }
+
+  & span {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: $unchangeableColor1;
+  }
+}
