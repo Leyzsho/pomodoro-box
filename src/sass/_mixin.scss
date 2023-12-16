@@ -217,14 +217,52 @@
   }
 }
 
+@mixin tippyChangingWrapper($theme) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 6px;
+
+  @if $theme == light {
+    background-color: $color4;
+
+  } @else if $theme == dark {
+    background-color: $color3;
+  }
+}
+
+@mixin tippyChangingInput {
+  @include input(light);
+  text-align: center;
+  background-color: inherit;
+  outline: none;
+  border: none;
+}
+
+@mixin confirmBtn {
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  outline-color: $unchangeableColor3;
+  outline-offset: 2px;
+
+  svg {
+    width: inherit;
+    height: inherit;
+  }
+}
+
 @mixin switchingBtn($theme) {
   cursor: pointer;
+  position: relative;
   width: 50px;
   height: 24px;
   border-radius: 34px;
-  padding: 0 4px;
   outline-color: $unchangeableColor3;
-  
+  transition: background-color .3s ease-in-out;
+
 
   @if $theme == light {
     background-color: $color3;
@@ -233,10 +271,22 @@
   }
 
   & span {
+    position: absolute;
+    top: 4px;
+    left: 4px;
     display: block;
     width: 16px;
     height: 16px;
     border-radius: 50%;
     background-color: $unchangeableColor1;
+    transition: left .3s ease-in-out;
+  }
+
+  &--on {
+    background-color: $unchangeableColor2;
+
+    & span {
+      left: calc(100% - 20px);
+    }
   }
 }

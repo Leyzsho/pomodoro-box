@@ -84,6 +84,31 @@
         text-align: right;
       }
 
+      &-changing {
+        &-wrapper {
+          @include tippyChangingWrapper(light);
+
+          &::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            top: 50%;
+            right: -18px;
+            transform: translateY(-50%);
+            border: 10px solid transparent;
+            border-left: 10px solid $color4;
+          }
+        }
+
+        &-confirm {
+          @include confirmBtn;
+        }
+
+        &-input {
+          @include tippyChangingInput;
+        }
+      }
+
       &-switching-notices {
         &-wrapper {
           width: 100%;
@@ -238,13 +263,7 @@
 
       &-name-changing {
         &-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          background-color: $color4;
-          padding: 0 6px;
+          @include tippyChangingWrapper(light);
 
           &::before {
             content: '';
@@ -259,24 +278,11 @@
         }
 
         &-input {
-          @include input(light);
-          text-align: center;
-          background-color: inherit;
-          outline: none;
-          border: none;
+          @include tippyChangingInput;
         }
 
         &-btn {
-          cursor: pointer;
-          width: 24px;
-          height: 24px;
-          outline-color: $unchangeableColor3;
-          outline-offset: 2px;
-
-          svg {
-            width: inherit;
-            height: inherit;
-          }
+          @include confirmBtn;
         }
       }
     }
@@ -333,8 +339,7 @@ body[data-theme="dark"] {
 
         &-name-changing {
           &-wrapper {
-            background-color: $color3;
-
+            @include tippyChangingWrapper(dark);
             &::before {
               border-right-color: $color1;
             }
@@ -353,6 +358,16 @@ body[data-theme="dark"] {
 
         &-btn {
           @include tippyBtn(dark);
+        }
+
+        &-changing {
+          &-wrapper {
+            @include tippyChangingWrapper(dark);
+
+            &::before {
+              border-left-color: $color1;
+            }
+          }
         }
 
         &-switching-notices {

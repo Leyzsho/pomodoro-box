@@ -1,7 +1,12 @@
 import Task, { ITaskInfo } from './task';
 import timeEndSound from '../../audio/time-end-sound.mp3';
 import breakTimeEndSound from '../../audio/breakTimeEndSound.mp3';
+
 import { gsap } from 'gsap';
+
+import tippy from 'tippy.js';
+import { hideAll } from 'tippy.js';
+import 'tippy.js/animations/shift-toward.css';
 
 export enum TIME_STATUS {
   WORK = 'work',
@@ -32,14 +37,21 @@ export enum TASK_STATUS {
   ACTIVE_COMPLETE = 'active-complete',
 }
 
+enum NOTICES_STATUS {
+  ON = 'on',
+  OFF = 'off',
+}
+
+enum SETTINGS_WRAPPER {
+  TOMATO_TIME = 'tomato-time',
+  SHORT_BREAK_TIME = 'short-break-time',
+  LONG_BREAK_TIME = 'long-break-time',
+  FREQUENCY_OF_LONG_BREAK = 'frequency-of-long-break',
+}
 export class Timer {
   // time properties
   private static currentTime: number;
   private static TimeInterval: NodeJS.Timeout;
-
-  private static __defaultTime: number = 10;
-  private static __defaultShortBreakTime: number = 5;
-  private static __defaultLongBreakTime: number = 15;
 
   private static timeElement: HTMLSpanElement | null = document.querySelector('.app__task-time');
   private static addTimeBtn: HTMLButtonElement | null = document.querySelector('.app__task-add-time');
@@ -47,12 +59,18 @@ export class Timer {
   private static timeEndSound: HTMLAudioElement = document.createElement('audio');
   private static breakTimeEndSound: HTMLAudioElement = document.createElement('audio');
 
-  private static triggerOfLongBreak: number = 4;
-
   // btn element properties
 
   private static firstBtn: HTMLButtonElement | null = document.querySelector('.app__task-first-btn');
   private static secondBtn: HTMLButtonElement | null = document.querySelector('.app__task-second-btn');
+
+  // settings properties
+
+  private static __defaultTime: number = 10;
+  private static __defaultShortBreakTime: number = 5;
+  private static __defaultLongBreakTime: number = 15;
+  private static __noticesStatus: NOTICES_STATUS = NOTICES_STATUS.ON;
+  private static __frequencyOfLongBreak: number = 4;
 
   // task info properties
 
@@ -87,6 +105,202 @@ export class Timer {
     }
   }
 
+  // settings
+
+  public static createSettingsMenu(): void {
+    const taskSettingsTrigger: HTMLButtonElement | null = document.querySelector('.app__task-settings-trigger');
+    const taskSettingsMenu: HTMLDivElement = document.createElement('div');
+
+    taskSettingsMenu.classList.add('app__task-settings-menu');
+
+    const tomatoTimeBtn: HTMLButtonElement = document.createElement('button');
+    const shortBreakTimeBtn: HTMLButtonElement = document.createElement('button');
+    const longBreakTimeBtn: HTMLButtonElement = document.createElement('button');
+    const frequencyOfLongBreakBtn: HTMLButtonElement = document.createElement('button');
+    const switchingNoticesWrapper: HTMLDivElement = document.createElement('div');
+    const switchingNoticesBtn: HTMLButtonElement = document.createElement('button');
+
+    tomatoTimeBtn.classList.add('app__task-settings-btn');
+    shortBreakTimeBtn.classList.add('app__task-settings-btn');
+    longBreakTimeBtn.classList.add('app__task-settings-btn');
+    frequencyOfLongBreakBtn.classList.add('app__task-settings-btn');
+    switchingNoticesWrapper.classList.add('app__task-settings-switching-notices-wrapper');
+    switchingNoticesBtn.classList.add('app__task-settings-switching-notices-btn');
+
+    tomatoTimeBtn.textContent = 'изменить время помидора';
+    shortBreakTimeBtn.textContent = 'изменить время короткого перерыва';
+    longBreakTimeBtn.textContent = 'изменить время длинного перерыва';
+    frequencyOfLongBreakBtn.textContent = 'изменить чистоту длинного перерыва';
+    switchingNoticesWrapper.textContent = 'уведомления';
+
+    const noticesStatusFromLocalStorage: string | null = localStorage.getItem('settings-notices');
+
+    if (noticesStatusFromLocalStorage) {
+      if (noticesStatusFromLocalStorage === 'on') {
+        switchingNoticesBtn.classList.add('app__task-settings-switching-notices-btn--on');
+
+        Timer.timeEndSound.muted = false;
+        Timer.breakTimeEndSound.muted = false;
+      } else if (noticesStatusFromLocalStorage === 'off') {
+        switchingNoticesBtn.classList.remove('app__task-settings-switching-notices-btn--on');
+
+        Timer.timeEndSound.muted = true;
+        Timer.breakTimeEndSound.muted = true;
+      }
+    } else switchingNoticesBtn.classList.add('app__task-settings-switching-notices-btn--on');
+
+    switchingNoticesBtn.addEventListener('click', () => {
+      if (Timer.__noticesStatus === NOTICES_STATUS.ON) {
+        localStorage.setItem('settings-notices', NOTICES_STATUS.OFF);
+        Timer.__noticesStatus = NOTICES_STATUS.OFF;
+
+        switchingNoticesBtn.classList.remove('app__task-settings-switching-notices-btn--on');
+
+        Timer.timeEndSound.muted = true;
+        Timer.breakTimeEndSound.muted = true;
+      } else if (Timer.__noticesStatus === NOTICES_STATUS.OFF) {
+        localStorage.setItem('settings-notices', NOTICES_STATUS.ON);
+        Timer.__noticesStatus = NOTICES_STATUS.ON;
+
+        switchingNoticesBtn.classList.add('app__task-settings-switching-notices-btn--on');
+
+        Timer.timeEndSound.muted = false;
+        Timer.breakTimeEndSound.muted = false;
+      }
+    });
+
+    switchingNoticesBtn.append(document.createElement('span'));
+    switchingNoticesWrapper.prepend(switchingNoticesBtn);
+
+    taskSettingsMenu.append(tomatoTimeBtn);
+    taskSettingsMenu.append(shortBreakTimeBtn);
+    taskSettingsMenu.append(longBreakTimeBtn);
+    taskSettingsMenu.append(frequencyOfLongBreakBtn);
+    taskSettingsMenu.append(switchingNoticesWrapper);
+
+    if (taskSettingsTrigger) {
+      tippy(taskSettingsTrigger, {
+        content: taskSettingsMenu,
+        placement: 'bottom',
+        interactive: true,
+        animation: 'shift-toward',
+        trigger: 'click',
+        offset: [-89, 15],
+      });
+    }
+
+    // wrappers for changing
+
+    const tomatoTimeWrapperForChanging: HTMLDivElement = Timer.createWrapperForSettingsChanging(SETTINGS_WRAPPER.TOMATO_TIME, tomatoTimeBtn.offsetHeight);
+    const shortBreakTimeWrapperForChanging: HTMLDivElement = Timer.createWrapperForSettingsChanging(SETTINGS_WRAPPER.SHORT_BREAK_TIME, shortBreakTimeBtn.offsetHeight);
+    const longBreakTimeWrapperForChanging: HTMLDivElement = Timer.createWrapperForSettingsChanging(SETTINGS_WRAPPER.LONG_BREAK_TIME, longBreakTimeBtn.offsetHeight);
+    const frequencyOfLongBreakWrapperForChanging: HTMLDivElement = Timer.createWrapperForSettingsChanging(SETTINGS_WRAPPER.FREQUENCY_OF_LONG_BREAK, frequencyOfLongBreakBtn.offsetHeight);
+
+    tippy(tomatoTimeBtn, {
+      content: tomatoTimeWrapperForChanging,
+      placement: 'left',
+      interactive: true,
+      animation: 'shift-toward',
+      trigger: 'click',
+      offset: [0, 15],
+    });
+
+    tippy(shortBreakTimeBtn, {
+      content: shortBreakTimeWrapperForChanging,
+      placement: 'left',
+      interactive: true,
+      animation: 'shift-toward',
+      trigger: 'click',
+      offset: [0, 15],
+    });
+
+    tippy(longBreakTimeBtn, {
+      content: longBreakTimeWrapperForChanging,
+      placement: 'left',
+      interactive: true,
+      animation: 'shift-toward',
+      trigger: 'click',
+      offset: [0, 15],
+    });
+
+    tippy(frequencyOfLongBreakBtn, {
+      content: frequencyOfLongBreakWrapperForChanging,
+      placement: 'left',
+      interactive: true,
+      animation: 'shift-toward',
+      trigger: 'click',
+      offset: [0, 15],
+    });
+  }
+
+  private static createWrapperForSettingsChanging(wrapperParam: SETTINGS_WRAPPER, height: number): HTMLDivElement {
+    const wrapper: HTMLDivElement = document.createElement('div');
+    const input: HTMLInputElement = document.createElement('input');
+
+    wrapper.classList.add('app__task-settings-changing-wrapper');
+    input.classList.add('app__task-settings-changing-input');
+
+    const confirmChangingBtn: HTMLButtonElement = document.createElement('button');
+    const confirmChangingSvg: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const confirmChangingUse: SVGUseElement = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+
+    confirmChangingBtn.classList.add('app__task-settings-changing-confirm');
+    gsap.set(input, { height });
+
+    confirmChangingUse.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#confirm-changing');
+
+    confirmChangingSvg.append(confirmChangingUse);
+    confirmChangingBtn.append(confirmChangingSvg);
+
+    wrapper.append(input);
+    wrapper.append(confirmChangingBtn);
+
+    if (wrapperParam === SETTINGS_WRAPPER.TOMATO_TIME) {
+      input.placeholder = `в минутах(текущ. ${Timer.__defaultTime})`;
+
+      confirmChangingBtn.addEventListener('click', () => {
+        Timer.__defaultTime = Number(input.value.replace(/[^0-9]/g,''));
+        Timer.setTimeByDefault();
+        localStorage.setItem('settings-default-time', Timer.__defaultTime.toString());
+      });
+    } else if (wrapperParam === SETTINGS_WRAPPER.SHORT_BREAK_TIME) {
+      input.placeholder = `в минутах(текущ. ${Timer.__defaultShortBreakTime})`;
+
+      confirmChangingBtn.addEventListener('click', () => {
+        Timer.__defaultShortBreakTime = Number(input.value.replace(/[^0-9]/g,''));
+        Timer.setBreakTimeByDefault();
+        localStorage.setItem('settings-default-short-break-time', Timer.__defaultShortBreakTime.toString());
+      });
+    } else if (wrapperParam === SETTINGS_WRAPPER.LONG_BREAK_TIME) {
+      input.placeholder = `в минутах(текущ. ${Timer.__defaultLongBreakTime})`;
+
+      confirmChangingBtn.addEventListener('click', () => {
+        Timer.__defaultLongBreakTime = Number(input.value.replace(/[^0-9]/g,''));
+        Timer.setBreakTimeByDefault();
+        localStorage.setItem('settings-default-long-break-time', Timer.__defaultLongBreakTime.toString());
+      });
+    } else if (wrapperParam === SETTINGS_WRAPPER.FREQUENCY_OF_LONG_BREAK) {
+      input.placeholder = `(текущ. ${Timer.__frequencyOfLongBreak})`;
+
+      confirmChangingBtn.addEventListener('click', () => {
+        Timer.__frequencyOfLongBreak = Number(input.value.replace(/[^0-9]/g,''));
+        localStorage.setItem('settings-default-frequency-of-long-break', Timer.__frequencyOfLongBreak.toString());
+      });
+    }
+
+    confirmChangingBtn.addEventListener('click', () => {
+      hideAll();
+    });
+
+    input.addEventListener('keypress', (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        confirmChangingBtn.click();
+      }
+    });
+
+    return wrapper;
+  }
+
   // readiness methods
 
   private static defaultResetBeforeReadiness(): void {
@@ -116,6 +330,16 @@ export class Timer {
   }
 
   public static setTaskForReadiness(task: ITaskInfo): void {
+    const defaultTimeFromLocalStorage: number | null = Number(localStorage.getItem('settings-default-time'));
+    const defaultShortBreakTimeFromLocalStorage: number | null = Number(localStorage.getItem('settings-default-short-break-time'));
+    const defaultLongBreakTimeFromLocalStorage: number | null = Number(localStorage.getItem('settings-default-long-break-time'));
+    const frequencyOfLongBreakBtnFromLocalStorage: number | null = Number(localStorage.getItem('settings-default-frequency-of-long-break'));
+
+    if (defaultTimeFromLocalStorage) Timer.__defaultTime = defaultTimeFromLocalStorage;
+    if (defaultShortBreakTimeFromLocalStorage) Timer.__defaultShortBreakTime = defaultShortBreakTimeFromLocalStorage;
+    if (defaultLongBreakTimeFromLocalStorage) Timer.__defaultLongBreakTime = defaultLongBreakTimeFromLocalStorage;
+    if (frequencyOfLongBreakBtnFromLocalStorage) Timer.__frequencyOfLongBreak = frequencyOfLongBreakBtnFromLocalStorage;
+
     const taskStatusFromLocalStorage: TASK_STATUS | null = localStorage.getItem('current-task-status') as TASK_STATUS | null;
     const taskTimeFromLocalStorage: number | null = Number(localStorage.getItem('current-task-time'));
 
@@ -259,7 +483,10 @@ export class Timer {
 
   private static setTimeByDefault(): void {
     Timer.currentTime = Timer.__defaultTime;
-    Timer.timeElement ? Timer.timeElement.textContent = Timer.getNormalTimeFormat() : '';
+
+    if (Timer.timeStatus === TIME_STATUS.READINESS) {
+      Timer.timeElement ? Timer.timeElement.textContent = Timer.getNormalTimeFormat() : '';
+    }
     localStorage.setItem('current-task-time', Timer.currentTime.toString());
   }
 
@@ -385,10 +612,10 @@ export class Timer {
     clearInterval(Timer.TimeInterval);
     localStorage.setItem('current-task-time', Timer.__defaultTime.toString());
 
-    const taskTomatoPassed: number | null = Number(localStorage.getItem('task-tomato-passed'));
-    if (taskTomatoPassed) {
-      localStorage.setItem('task-tomato-passed', (taskTomatoPassed + 1).toString());
-    } else localStorage.setItem('task-tomato-passed', (1).toString());
+    const tomatoPassed: number | null = Number(localStorage.getItem('tomato-passed'));
+    if (tomatoPassed) {
+      localStorage.setItem('tomato-passed', (tomatoPassed + 1).toString());
+    } else localStorage.setItem('tomato-passed', '1');
 
     Timer.playTimeEndSound();
 
@@ -434,17 +661,17 @@ export class Timer {
   // break time
 
   private static setBreakTimeByDefault(): void {
-    const taskTomatoPassed: number | null = Number(localStorage.getItem('task-tomato-passed'));
-    if (taskTomatoPassed && taskTomatoPassed >= Timer.triggerOfLongBreak) {
+    const tomatoPassed: number | null = Number(localStorage.getItem('tomato-passed'));
+    if (tomatoPassed && tomatoPassed >= Timer.__frequencyOfLongBreak) {
       Timer.currentTime = Timer.__defaultLongBreakTime;
-      localStorage.setItem('task-tomato-passed', (0).toString());
+      localStorage.setItem('tomato-passed', '0');
     } else Timer.currentTime = Timer.__defaultShortBreakTime;
 
-    Timer.timeElement ? Timer.timeElement.textContent = Timer.getNormalTimeFormat() : '';
+    if (Timer.timeStatus === TIME_STATUS.READINESS) {
+      Timer.timeElement ? Timer.timeElement.textContent = Timer.getNormalTimeFormat() : '';
+    }
     localStorage.setItem('current-task-time', Timer.currentTime.toString());
   }
-
-  // private static setBreakTimeByDefault(seconds: number): void {}
 
   private static startBreak(): void {
     Timer.timeEndSound.remove();
