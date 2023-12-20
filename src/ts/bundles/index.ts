@@ -1,5 +1,4 @@
 import '../../images/logo.svg';
-import '../../images/statistic-link.svg';
 import '../../images/task-settings.svg';
 
 import Task, { ITaskInfo } from '../modules/task';
